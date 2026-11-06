@@ -8,6 +8,7 @@ namespace Knuth_Morris_Pratt_2
         private int currentMatch = -1;
         private int patternLength;
         private readonly List<Measurement> measurements = new();
+        private Measurement? lastMeasurement;
 
         public Form1()
         {
@@ -97,6 +98,7 @@ namespace Knuth_Morris_Pratt_2
 
             Measurement m = Methods.MeasureSearch(text, pattern, out matches);
             measurements.Add(m);
+            lastMeasurement = m;
             patternLength = pattern.Length;
 
             // Podświetlanie (poza pomiarem)
@@ -130,13 +132,18 @@ namespace Knuth_Morris_Pratt_2
             richTextBoxContent.ScrollToCaret();
             richTextBoxContent.Focus();
 
-            labelSummary.Text = $"Wystąpienie {currentMatch + 1} z {matches.Count} (pozycja {pos + 1})";
+            string time = lastMeasurement is null
+                ? ""
+                : $" | Czas: {lastMeasurement.TimeMs:F4} ms ({lastMeasurement.TextLength} znaków)";
+
+            labelSummary.Text = $"Wystąpienie {currentMatch + 1} z {matches.Count} (pozycja {pos + 1}){time}";
         }
 
         private void ClearResults()
         {
             matches = new List<int>();
             currentMatch = -1;
+            lastMeasurement = null;
 
             richTextBoxContent.SelectAll();
             richTextBoxContent.SelectionBackColor = richTextBoxContent.BackColor;
