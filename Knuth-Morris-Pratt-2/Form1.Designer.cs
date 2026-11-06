@@ -60,7 +60,7 @@
             buttonSearch.TabIndex = 1;
             buttonSearch.Text = "Szukaj";
             buttonSearch.UseVisualStyleBackColor = true;
-            buttonSearch.Click += button2_Click;
+            buttonSearch.Click += buttonSearch_Click;
             // 
             // buttonOccurence
             // 
@@ -71,7 +71,7 @@
             buttonOccurence.TabIndex = 2;
             buttonOccurence.Text = "Następne";
             buttonOccurence.UseVisualStyleBackColor = true;
-            buttonOccurence.Click += button3_Click;
+            buttonOccurence.Click += buttonOccurence_Click;
             // 
             // richTextBoxContent
             // 
@@ -139,7 +139,7 @@
             buttonInputText.TabIndex = 9;
             buttonInputText.Text = "Wpisz własny tekst";
             buttonInputText.UseVisualStyleBackColor = true;
-            buttonInputText.Click += button4_Click;
+            buttonInputText.Click += buttonInputText_Click;
             // 
             // Form1
             // 

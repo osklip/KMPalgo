@@ -1,47 +1,47 @@
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
-using System.Text.RegularExpressions;
-
 namespace Knuth_Morris_Pratt_2
 {
+    // Obsługa interfejsu: zdarzenia kontrolek i wyświetlanie wyników.
+    // Cała logika wyszukiwania znajduje się w klasie Methods.
     public partial class Form1 : Form
     {
+        private List<int> matches = new();
+        private int currentMatch = -1;
+        private int patternLength;
+        private readonly List<Measurement> measurements = new();
+
         public Form1()
         {
             InitializeComponent();
         }
 
-        private List<int> matches = new();
-        private int currentMatch = -1;
-        private int patternLength;
-        private sealed record Measurement(int TextLength, int PatternLength, int Matches, int Repeats, double TimeMs);
+        private void Form1_Load(object sender, EventArgs e)
+        {
 
-        private readonly List<Measurement> measurements = new();
+        }
+
+        // ---------- Zdarzenia ----------
 
         private void buttonInputFile_Click(object sender, EventArgs e)
         {
-            //Methods.OpenFile();
             OpenFile();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void buttonSearch_Click(object sender, EventArgs e)
         {
-            //Methods.RunSearch(wzorzec, tekst);
             RunSearch();
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void buttonOccurence_Click(object sender, EventArgs e)
         {
-            //Methods.GoToNext();
             GoToNext();
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void buttonInputText_Click(object sender, EventArgs e)
         {
             string? text = PromptForText(
-        "Wprowadź tekst",
-        "Wpisz lub wklej tekst do przeszukania:",
-        richTextBoxContent.Text);
+                "Wprowadź tekst",
+                "Wpisz lub wklej tekst do przeszukania:",
+                richTextBoxContent.Text);
 
             if (text == null)
                 return; // użytkownik anulował
@@ -50,6 +50,8 @@ namespace Knuth_Morris_Pratt_2
             ClearResults();
             labelSummary.Text = $"Wprowadzono tekst ({text.Length} znaków).";
         }
+
+        // ---------- Operacje na interfejsie ----------
 
         private void OpenFile()
         {
@@ -93,7 +95,7 @@ namespace Knuth_Morris_Pratt_2
                 pattern = pattern.ToLowerInvariant();
             }
 
-            Measurement m = MeasureSearch(text, pattern, out matches);
+            Measurement m = Methods.MeasureSearch(text, pattern, out matches);
             measurements.Add(m);
             patternLength = pattern.Length;
 
@@ -117,10 +119,11 @@ namespace Knuth_Morris_Pratt_2
 
         private void GoToNext()
         {
-            if (matches.Count == 0)
+            int next = Methods.NextMatchIndex(currentMatch, matches.Count);
+            if (next < 0)
                 return;
 
-            currentMatch = (currentMatch + 1) % matches.Count;
+            currentMatch = next;
             int pos = matches[currentMatch];
 
             richTextBoxContent.Select(pos, patternLength);
@@ -138,52 +141,6 @@ namespace Knuth_Morris_Pratt_2
             richTextBoxContent.SelectAll();
             richTextBoxContent.SelectionBackColor = richTextBoxContent.BackColor;
             richTextBoxContent.Select(0, 0);
-        }
-
-        public static int[] BuildPrefixTable(string pattern)
-        {
-            var pi = new int[pattern.Length];
-            int k = 0;
-
-            for (int i = 1; i < pattern.Length; i++)
-            {
-                while (k > 0 && pattern[i] != pattern[k])
-                    k = pi[k - 1];
-
-                if (pattern[i] == pattern[k])
-                    k++;
-
-                pi[i] = k;
-            }
-
-            return pi;
-        }
-
-        public static List<int> Search(string text, string pattern)
-        {
-            var result = new List<int>();
-            if (pattern.Length == 0 || pattern.Length > text.Length)
-                return result;
-
-            int[] pi = BuildPrefixTable(pattern);
-            int j = 0;
-
-            for (int i = 0; i < text.Length; i++)
-            {
-                while (j > 0 && text[i] != pattern[j])
-                    j = pi[j - 1];
-
-                if (text[i] == pattern[j])
-                    j++;
-
-                if (j == pattern.Length)
-                {
-                    result.Add(i - j + 1);
-                    j = pi[j - 1];
-                }
-            }
-
-            return result;
         }
 
         private string? PromptForText(string title, string label, string initialText = "")
@@ -246,32 +203,6 @@ namespace Knuth_Morris_Pratt_2
             };
 
             return dlg.ShowDialog(this) == DialogResult.OK ? box.Text : null;
-        }
-
-        private Measurement MeasureSearch(string text, string pattern, out List<int> found)
-        {
-            // Pierwsze wywołanie: wynik i "rozgrzewka" (kompilacja JIT nie zafałszuje pomiaru)
-            found = Search(text, pattern);
-
-            int repeats = 0;
-            long start = Stopwatch.GetTimestamp();
-            TimeSpan elapsed;
-
-            do
-            {
-                Search(text, pattern);
-                repeats++;
-                elapsed = Stopwatch.GetElapsedTime(start);
-            }
-            while (elapsed.TotalMilliseconds < 200);
-
-            double avgMs = elapsed.TotalMilliseconds / repeats;
-            return new Measurement(text.Length, pattern.Length, found.Count, repeats, avgMs);
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
         }
     }
 }
