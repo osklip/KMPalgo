@@ -1,0 +1,7 @@
+Algorytm Knutha-Morrisa-Pratta służy do wyszukiwania wzorca w tekście.
+Zamiast cofać się w tekście, algorytm korzysta z tablicy prefiksowej,
+którą wyznacza raz, na podstawie samego wzorca.
+Dzięki temu algorytm działa w czasie liniowym, a każdy znak tekstu
+jest porównywany ograniczoną liczbą razy.
+ALGORYTM KMP bywa porównywany z algorytmem Rabina-Karpa
+oraz z algorytmem Boyera-Moore'a.
